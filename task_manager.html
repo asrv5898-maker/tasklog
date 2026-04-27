@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 관리</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;
+  --border:#e2e0d8;--border2:#ccc9be;
+  --text:#1a1917;--text2:#6b6860;--text3:#a09e98;
+  --accent:#2d4a3e;--accent-light:#e8f0ec;
+  --accent2:#c4873a;--accent2-light:#faf0e4;
+  --danger:#c0392b;--danger-light:#fdf0ef;
+  --r:10px;--rl:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* ── 레이아웃 ── */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:200px;flex-shrink:0;background:var(--accent);display:flex;flex-direction:column;padding:28px 0 20px}
+.sidebar-logo{padding:0 20px 24px;font-size:13px;font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav-item.active{color:#fff;background:rgba(255,255,255,.15);font-weight:500}
+.sidebar-footer{margin-top:auto;padding:14px 20px 0;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:rgba(255,255,255,.3);font-family:'JetBrains Mono',monospace;word-break:break-all}
+.main{flex:1;overflow-y:auto;padding:32px 36px}
+@media(max-width:640px){
+  .shell{flex-direction:column;height:auto}
+  .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;padding:14px 16px 0;gap:0}
+  .sidebar-logo{padding:0 16px 14px;border-bottom:none;border-right:1px solid rgba(255,255,255,.12);margin-bottom:0;margin-right:8px}
+  .nav-item{width:auto;padding:8px 12px;font-size:12px}
+  .sidebar-footer{display:none}
+  .main{padding:20px 16px}
+  .form-row{grid-template-columns:1fr}
+  .task-actions{flex-wrap:wrap}
+}
+
+/* ── 페이지 ── */
+.page{display:none}.page.active{display:block}
+.page-title{font-size:20px;font-weight:700;margin-bottom:22px;display:flex;align-items:center;gap:10px}
+.page-title span{font-size:13px;font-weight:400;color:var(--text3)}
+
+/* ── 폼 ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:24px;margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:14px}
+.form-group:last-child{margin-bottom:0}
+label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;letter-spacing:.03em;text-transform:uppercase}
+input[type=text],input[type=date],select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--text);background:var(--surface);font-family:'Noto Sans KR',sans-serif;transition:border-color .15s;outline:none}
+input:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+
+/* ── 버튼 ── */
+.btn{padding:8px 14px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500}
+.btn-accent:hover{background:#1e3429;border-color:#1e3429;color:#fff}
+.btn-full{width:100%;justify-content:center;padding:11px;font-size:14px}
+.btn-danger{color:var(--danger);border-color:transparent}
+.btn-danger:hover{background:var(--danger-light)}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+
+/* ── 이미지 ── */
+.img-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.img-grid{display:flex;flex-wrap:wrap;gap:8px}
+.img-thumb{width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+.img-thumb:hover{opacity:.8}
+
+/* ── 업무 카드 ── */
+.task-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;margin-bottom:10px;transition:border-color .15s}
+.task-item:hover{border-color:var(--border2)}
+.task-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.task-content{font-size:14px;font-weight:500;line-height:1.5}
+.task-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.task-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.tag.date-set{background:var(--accent-light);color:var(--accent);border-color:#b8d5c4}
+.tag.date-none{background:var(--accent2-light);color:var(--accent2);border-color:#e8c990}
+
+/* ── 논의 프리뷰 ── */
+.disc-preview{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.disc-preview-item{background:var(--surface2);border-radius:6px;padding:6px 10px;margin-bottom:4px;font-size:12px}
+.disc-preview-meta{color:var(--text3);margin-bottom:2px}
+.disc-preview-text{color:var(--text)}
+
+/* ── 통계 ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.stat-value{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* ── 달력 ── */
+.cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-month{font-size:16px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{text-align:center;font-size:11px;color:var(--text3);padding:6px 0;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.cal-cell{min-height:54px;padding:5px;border-radius:8px;cursor:pointer;transition:background .1s}
+.cal-cell:hover{background:var(--surface2)}
+.cal-cell.other{opacity:.3}
+.cal-cell.today .cal-day{background:var(--accent);color:#fff;border-radius:50%}
+.cal-day{width:24px;height:24px;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.cal-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-top:14px}
+.cal-detail-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:12px}
+.cal-task-row{padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.cal-task-content{font-size:13px;font-weight:500}
+.cal-task-meta{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* ── 모달 공통 ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--rl);padding:24px;width:440px;max-width:94vw;border:1px solid var(--border);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:18px;color:var(--text)}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.disc-thread{max-height:220px;overflow-y:auto;margin-bottom:14px}
+.disc-bubble{padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;border:1px solid var(--border)}
+.disc-bubble-meta{font-size:11px;color:var(--text3);margin-bottom:3px}
+.disc-bubble-text{font-size:13px}
+
+/* ── 그림판 ── */
+.paint-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.paint-overlay.open{display:flex}
+.paint-box{background:var(--surface);border-radius:var(--rl);padding:18px;border:1px solid var(--border);width:680px;max-width:96vw}
+.paint-toolbar{display:flex;gap:5px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:10px}
+.ptool{padding:5px 10px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid transparent;background:none;color:var(--text2);font-family:'Noto Sans KR',sans-serif;transition:all .12s}
+.ptool:hover{background:var(--surface);border-color:var(--border)}
+.ptool.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pdiv{width:1px;height:20px;background:var(--border);margin:0 2px}
+.swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:transform .1s}
+.swatch:hover{transform:scale(1.15)}
+.swatch.active{border-color:var(--text)}
+.paint-canvas-wrap{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:crosshair;background:#fff}
+.paint-canvas-wrap canvas{display:block;max-width:100%}
+.paint-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+.empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:13px}
+.empty strong{display:block;font-size:16px;color:var(--text2);margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar-logo">TASKLOG</div>
+    <button class="nav-item active" onclick="goTo('create')"><span>✦</span> 업무 생성</button>
+    <button class="nav-item" onclick="goTo('list')"><span>≡</span> 날짜 배정</button>
+    <button class="nav-item" onclick="goTo('calendar')"><span>◫</span> 달력 확인</button>
+    <div class="sidebar-footer" id="save-status">준비 중...</div>
+  </div>
+
+  <!-- 메인 -->
+  <div class="main">
+
+    <!-- 업무 생성 -->
+    <div class="page active" id="page-create">
+      <div class="page-title">업무 생성 <span>새 업무를 등록합니다</span></div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group"><label>공간</label><input type="text" id="f-space" placeholder="예: 본관 2층"></div>
+          <div class="form-group"><label>Zone</label><input type="text" id="f-zone" placeholder="예: Zone A"></div>
+        </div>
+        <div class="form-group"><label>내용</label><textarea id="f-content" placeholder="업무 내용을 상세히 입력하세요" style="min-height:100px"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>작업자</label><input type="text" id="f-worker" placeholder="실제 작업하는 사람"></div>
+          <div class="form-group"><label>담당자</label><input type="text" id="f-manager" placeholder="책임 담당자 또는 팀명"></div>
+        </div>
+        <div class="form-group">
+          <label>이미지 / 그림판</label>
+          <div class="img-tools">
+            <button class="btn" onclick="openPaint(null,'create')">✏ 그림판 열기</button>
+            <button class="btn" onclick="document.getElementById('img-up-create').click()">↑ 사진 불러와서 편집</button>
+            <input type="file" id="img-up-create" accept="image/*" style="display:none" onchange="loadImgForPaint(this,'create')">
+          </div>
+          <div class="img-grid" id="create-img-grid"></div>
+        </div>
+        <button class="btn btn-accent btn-full" onclick="createTask()">업무 생성 →</button>
+      </div>
+    </div>
+
+    <!-- 날짜 배정 -->
+    <div class="page" id="page-list">
+      <div class="page-title">날짜 배정 <span id="list-count"></span></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">전체 업무</div><div class="stat-value" id="st-total">0</div></div>
+        <div class="stat"><div class="stat-label">날짜 배정됨</div><div class="stat-value" id="st-dated">0</div></div>
+        <div class="stat"><div class="stat-label">미배정</div><div class="stat-value" id="st-none">0</div></div>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- 달력 -->
+    <div class="page" id="page-calendar">
+      <div class="page-title">달력 확인</div>
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <div class="cal-month" id="cal-month-label"></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="changeMonth(-1)">‹</button>
+            <button class="btn btn-sm" onclick="changeMonth(0)">오늘</button>
+            <button class="btn btn-sm" onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div id="cal-detail"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 날짜 배정 모달 -->
+<div class="overlay" id="date-modal">
+  <div class="modal">
+    <div class="modal-title" id="date-modal-title">날짜 배정</div>
+    <div class="form-group"><label>날짜</label><input type="date" id="date-input"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDateModal()">취소</button>
+      <button class="btn btn-accent" onclick="assignDate()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 논의 기록 모달 -->
+<div class="overlay" id="disc-modal">
+  <div class="modal" style="width:480px">
+    <div class="modal-title" id="disc-modal-title">논의 기록</div>
+    <div class="disc-thread" id="disc-thread"></div>
+    <div class="form-group"><label>논의 내용</label><textarea id="disc-text" placeholder="회의 내용, 결정 사항, 메모 등..." style="min-height:90px"></textarea></div>
+    <div class="form-group"><label>작성자</label><input type="text" id="disc-author" placeholder="이름"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDiscModal()">닫기</button>
+      <button class="btn btn-accent" onclick="addDisc()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 그림판 -->
+<div class="paint-overlay" id="paint-overlay">
+  <div class="paint-box">
+    <div class="paint-toolbar">
+      <button class="ptool active" id="ptool-pen" onclick="setPTool('pen')">펜</button>
+      <button class="ptool" id="ptool-line" onclick="setPTool('line')">직선</button>
+      <button class="ptool" id="ptool-rect" onclick="setPTool('rect')">사각형</button>
+      <button class="ptool" id="ptool-circle" onclick="setPTool('circle')">원</button>
+      <button class="ptool" id="ptool-arrow" onclick="setPTool('arrow')">화살표</button>
+      <button class="ptool" id="ptool-text" onclick="setPTool('text')">텍스트</button>
+      <button class="ptool" id="ptool-eraser" onclick="setPTool('eraser')">지우개</button>
+      <div class="pdiv"></div>
+      <input type="range" min="1" max="24" value="3" id="brush-size" style="width:60px" oninput="pBrushSize=+this.value;document.getElementById('brush-lbl').textContent=this.value+'px'">
+      <span style="font-size:11px;color:var(--text3);min-width:28px" id="brush-lbl">3px</span>
+      <div class="pdiv"></div>
+      <div id="p-swatches" style="display:flex;gap:4px"></div>
+      <input type="color" id="p-custom" value="#1a1917" style="width:22px;height:22px;padding:0;border:2px solid var(--border);border-radius:50%;cursor:pointer" oninput="setPColor(this.value)">
+      <div style="flex:1"></div>
+      <button class="ptool" onclick="undoPaint()">↩ 되돌리기</button>
+      <button class="ptool" onclick="clearPaint()">전체 지우기</button>
+    </div>
+    <div class="paint-canvas-wrap">
+      <canvas id="paint-canvas" width="640" height="400"></canvas>
+    </div>
+    <div class="paint-footer">
+      <button class="btn" onclick="closePaint()">취소</button>
+      <button class="btn btn-accent" onclick="savePaint()">이미지 저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ★ 여기에 Apps Script 웹앱 URL을 붙여넣으세요
+// ============================================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL_lVV4HnEP6HjG0jv8Z4jNTMij20f15-Rj0Vs5ATqdOxOPMwtVt0KkvAM6MS8jdy0UA/exec';
+// ============================================================
+
+let tasks = [], calYear, calMonth;
+let pendingDateId = null, pendingDiscId = null;
+let createImgs = [];
+
+/* ── 상태 표시 ── */
+function setStatus(msg, err) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg;
+  el.style.color = err ? '#f87171' : 'rgba(255,255,255,.35)';
+}
+
+/* ── API (JSONP — file:// 포함 모든 환경 작동) ── */
+function apiCall(params) {
+  return new Promise((resolve, reject) => {
+    const cb = '_cb' + Date.now();
+    const sc = document.createElement('script');
+    const qs = Object.entries({...params, callback: cb})
+      .map(([k,v]) => k + '=' + encodeURIComponent(typeof v === 'object' ? JSON.stringify(v) : v)).join('&');
+    window[cb] = data => { delete window[cb]; sc.remove(); resolve(data); };
+    sc.onerror   = () => { delete window[cb]; sc.remove(); reject(new Error('network')); };
+    sc.src = GAS_URL + '?' + qs;
+    document.head.appendChild(sc);
+  });
+}
+const apiGet  = action => apiCall({ action });
+const apiPost = body   => apiCall({ action: body.action, payload: JSON.stringify(body) });
+
+/* ── 로드 ── */
+async function load() {
+  const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth();
+  if (!GAS_URL) {
+    setStatus('로컬 모드 (URL 미설정)', true);
+    try { tasks = JSON.parse(localStorage.getItem('tl_tasks')) || []; } catch(e) { tasks = []; }
+    return;
+  }
+  setStatus('불러오는 중...');
+  try {
+    const data = await apiGet('getAll');
+    tasks = data.tasks || [];
+    setStatus('동기화 완료 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) {
+    setStatus('연결 오류 — 로컬 모드', true);
+    try { tasks = JSON.parse(localStorage.getItem('tl_tasks')) || []; } catch(e2) { tasks = []; }
+  }
+}
+
+/* ── 동기화 헬퍼 ── */
+function localSave() { localStorage.setItem('tl_tasks', JSON.stringify(tasks)); }
+async function syncCreate(task) {
+  localSave();
+  if (!GAS_URL) return;
+  setStatus('저장 중...');
+  try { await apiPost({ action:'create', task }); setStatus('저장됨 · ' + ts()); }
+  catch(e) { setStatus('저장 오류 (로컬만)', true); }
+}
+async function syncUpdate(task) {
+  localSave();
+  if (!GAS_URL) return;
+  setStatus('저장 중...');
+  try { await apiPost({ action:'update', task }); setStatus('저장됨 · ' + ts()); }
+  catch(e) { setStatus('저장 오류 (로컬만)', true); }
+}
+async function syncDelete(id) {
+  localSave();
+  if (!GAS_URL) return;
+  setStatus('삭제 중...');
+  try { await apiPost({ action:'delete', id }); setStatus('삭제됨 · ' + ts()); }
+  catch(e) { setStatus('삭제 오류 (로컬만)', true); }
+}
+function ts() { return new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}); }
+
+/* ── 네비게이션 ── */
+function goTo(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((b,i) =>
+    b.classList.toggle('active', ['create','list','calendar'][i] === name));
+  if (name === 'list')     renderList();
+  if (name === 'calendar') renderCalendar();
+}
+
+/* ── 업무 생성 ── */
+async function createTask() {
+  const content = document.getElementById('f-content').value.trim();
+  if (!content) { alert('내용을 입력해 주세요.'); return; }
+  const task = {
+    id: Date.now(),
+    space:   document.getElementById('f-space').value.trim(),
+    zone:    document.getElementById('f-zone').value.trim(),
+    content,
+    worker:  document.getElementById('f-worker').value.trim(),
+    manager: document.getElementById('f-manager').value.trim(),
+    images:  [...createImgs],
+    date: null, discussions: [],
+    createdAt: new Date().toISOString()
+  };
+  tasks.push(task);
+  ['f-space','f-zone','f-content','f-worker','f-manager'].forEach(id => document.getElementById(id).value = '');
+  createImgs = [];
+  document.getElementById('create-img-grid').innerHTML = '';
+  goTo('list');
+  await syncCreate(task);
+}
+
+/* ── 업무 삭제 ── */
+async function delTask(id) {
+  if (!confirm('이 업무를 삭제할까요?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  renderList();
+  await syncDelete(id);
+}
+
+/* ── 날짜 배정/해제 ── */
+function openDateModal(id) {
+  pendingDateId = id;
+  const t = tasks.find(t => t.id === id);
+  document.getElementById('date-modal-title').textContent = t.content.slice(0,50);
+  document.getElementById('date-input').value = t.date || '';
+  document.getElementById('date-modal').classList.add('open');
+}
+function closeDateModal() { document.getElementById('date-modal').classList.remove('open'); }
+async function assignDate() {
+  const d = document.getElementById('date-input').value;
+  if (!d) { alert('날짜를 선택하세요.'); return; }
+  const t = tasks.find(t => t.id === pendingDateId);
+  if (t) t.date = d;
+  closeDateModal(); renderList();
+  await syncUpdate(t);
+}
+async function clearDate(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.date = null; renderList(); await syncUpdate(t); }
+}
+
+/* ── 논의 기록 ── */
+function openDiscModal(id) {
+  pendingDiscId = id;
+  const t = tasks.find(t => t.id === id);
+  document.getElementById('disc-modal-title').textContent = t.content.slice(0,50);
+  document.getElementById('disc-text').value = '';
+  document.getElementById('disc-author').value = '';
+  renderDiscThread(t);
+  document.getElementById('disc-modal').classList.add('open');
+}
+function closeDiscModal() { document.getElementById('disc-modal').classList.remove('open'); }
+function renderDiscThread(t) {
+  const el = document.getElementById('disc-thread');
+  if (!t.discussions || !t.discussions.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0">아직 논의 기록이 없습니다.</div>'; return;
+  }
+  el.innerHTML = t.discussions.map(d => `
+    <div class="disc-bubble">
+      <div class="disc-bubble-meta">${d.author ? esc(d.author) + ' · ' : ''}${d.at}</div>
+      <div class="disc-bubble-text">${esc(d.text)}</div>
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+async function addDisc() {
+  const text = document.getElementById('disc-text').value.trim();
+  if (!text) { alert('내용을 입력하세요.'); return; }
+  const t = tasks.find(t => t.id === pendingDiscId);
+  const now = new Date();
+  t.discussions.push({
+    text,
+    author: document.getElementById('disc-author').value.trim(),
+    at: `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  });
+  document.getElementById('disc-text').value = '';
+  renderDiscThread(t); renderList();
+  await syncUpdate(t);
+}
+
+/* ── 목록 렌더링 ── */
+function renderList() {
+  const total = tasks.length, dated = tasks.filter(t => t.date).length;
+  document.getElementById('st-total').textContent  = total;
+  document.getElementById('st-dated').textContent  = dated;
+  document.getElementById('st-none').textContent   = total - dated;
+  document.getElementById('list-count').textContent = total ? total + '건' : '';
+  const c = document.getElementById('task-list');
+  if (!tasks.length) {
+    c.innerHTML = '<div class="empty"><strong>업무가 없습니다</strong>업무 생성 탭에서 새 업무를 추가하세요.</div>'; return;
+  }
+  const sorted = [...tasks].sort((a,b) => {
+    if (!a.date && !b.date) return 0; if (!a.date) return -1; if (!b.date) return 1;
+    return a.date.localeCompare(b.date);
+  });
+  c.innerHTML = sorted.map(t => `
+    <div class="task-item">
+      <div class="task-header">
+        <div style="flex:1;min-width:0">
+          <div class="task-content">${esc(t.content)}</div>
+          <div class="task-meta">
+            ${t.space   ? `<span class="tag">${esc(t.space)}</span>` : ''}
+            ${t.zone    ? `<span class="tag">${esc(t.zone)}</span>` : ''}
+            ${t.worker  ? `<span class="tag">작업 ${esc(t.worker)}</span>` : ''}
+            ${t.manager ? `<span class="tag">담당 ${esc(t.manager)}</span>` : ''}
+            <span class="tag ${t.date ? 'date-set' : 'date-none'}">${t.date || '날짜 미정'}</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="btn btn-sm" onclick="openDateModal(${t.id})">날짜 배정</button>
+          ${t.date ? `<button class="btn btn-sm btn-danger" onclick="clearDate(${t.id})">날짜 해제</button>` : ''}
+          <button class="btn btn-sm" onclick="openDiscModal(${t.id})">논의${t.discussions && t.discussions.length ? ` (${t.discussions.length})` : ''}</button>
+          <button class="btn btn-sm" onclick="openPaint(null,${t.id})">그림판</button>
+          <button class="btn btn-sm" onclick="uploadForTask(${t.id})">사진</button>
+          <button class="btn btn-sm btn-danger" onclick="delTask(${t.id})">삭제</button>
+        </div>
+      </div>
+      ${t.images && t.images.length ? `<div class="img-grid" style="margin-top:10px">${t.images.map(p => `<img class="img-thumb" src="${p}" onclick="openPaintEdit('${p}',${t.id})">`).join('')}</div>` : ''}
+      ${t.discussions && t.discussions.length ? `<div class="disc-preview">
+        ${t.discussions.slice(-2).map(d => `<div class="disc-preview-item"><div class="disc-preview-meta">${d.author ? esc(d.author) + ' · ' : ''}${d.at}</div><div class="disc-preview-text">${esc(d.text.slice(0,80))}${d.text.length>80?'…':''}</div></div>`).join('')}
+        ${t.discussions.length > 2 ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">+ ${t.discussions.length-2}건 더 있음</div>` : ''}
+      </div>` : ''}
+    </div>`).join('');
+}
+
+/* ── 달력 ── */
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = `${calYear}년 ${calMonth+1}월`;
+  const grid = document.getElementById('cal-grid');
+  const dows = ['일','월','화','수','목','금','토'];
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const last  = new Date(calYear, calMonth+1, 0).getDate();
+  const pLast = new Date(calYear, calMonth, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0,10);
+  for (let i = 0; i < first; i++)
+    html += `<div class="cal-cell other"><div class="cal-day">${pLast-first+1+i}</div></div>`;
+  for (let d = 1; d <= last; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt = tasks.filter(t => t.date === ds);
+    html += `<div class="cal-cell${ds===todayStr?' today':''}" onclick="showCalDay('${ds}')">
+      <div class="cal-day">${d}</div>
+      <div class="cal-dots">${dt.map(() => `<span class="cal-dot"></span>`).join('')}</div>
+    </div>`;
+  }
+  const rem = (7 - (first+last)%7)%7;
+  for (let d = 1; d <= rem; d++)
+    html += `<div class="cal-cell other"><div class="cal-day">${d}</div></div>`;
+  grid.innerHTML = html;
+  document.getElementById('cal-detail').innerHTML = '';
+}
+function showCalDay(ds) {
+  const dt = tasks.filter(t => t.date === ds);
+  const el = document.getElementById('cal-detail');
+  if (!dt.length) {
+    el.innerHTML = `<div class="cal-detail"><div class="cal-detail-title">${ds}</div><div style="font-size:13px;color:var(--text3)">등록된 업무가 없습니다.</div></div>`; return;
+  }
+  el.innerHTML = `<div class="cal-detail">
+    <div class="cal-detail-title">${ds} · 업무 ${dt.length}건</div>
+    ${dt.map(t => `<div class="cal-task-row">
+      <div class="cal-task-content">${esc(t.content)}</div>
+      <div class="cal-task-meta">${[t.space,t.zone,t.worker?'작업 '+t.worker:'',t.manager?'담당 '+t.manager:''].filter(Boolean).join(' · ')}${t.discussions&&t.discussions.length?` · 논의 ${t.discussions.length}건`:''}</div>
+      ${t.images&&t.images.length?`<div class="img-grid" style="margin-top:8px">${t.images.map(p=>`<img class="img-thumb" src="${p}">`).join('')}</div>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+function changeMonth(d) {
+  if (d===0) { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); }
+  else { calMonth+=d; if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;} }
+  renderCalendar();
+}
+
+/* ── 그림판 ── */
+const PSWATCHES = ['#1a1917','#ffffff','#e24b4a','#378add','#2d4a3e','#c4873a','#7f77dd','#1d9e75','#ef9f27'];
+let pCanvas, pCtx, pTool='pen', pDrawing=false, pColor='#1a1917', pBrushSize=3;
+let pSX=0, pSY=0, pSnap=null, pHistory=[];
+let paintSaveTarget='create';
+
+function initPaint() {
+  pCanvas = document.getElementById('paint-canvas');
+  pCtx = pCanvas.getContext('2d');
+  pCanvas.onmousedown = e => pdDown(e.offsetX, e.offsetY);
+  pCanvas.onmousemove = e => pdMove(e.offsetX, e.offsetY);
+  pCanvas.onmouseup = pCanvas.onmouseleave = () => { pDrawing = false; };
+  pCanvas.ontouchstart = e => { e.preventDefault(); const r=pCanvas.getBoundingClientRect(),t=e.touches[0]; pdDown(t.clientX-r.left,t.clientY-r.top); },{passive:false};
+  pCanvas.ontouchmove  = e => { e.preventDefault(); const r=pCanvas.getBoundingClientRect(),t=e.touches[0]; pdMove(t.clientX-r.left,t.clientY-r.top); },{passive:false};
+  pCanvas.ontouchend   = () => { pDrawing = false; };
+  document.getElementById('p-swatches').innerHTML =
+    PSWATCHES.map(c => `<div class="swatch${c===pColor?' active':''}" style="background:${c};${c==='#ffffff'?'border:1.5px solid var(--border);':''}" onclick="setPColor('${c}')"></div>`).join('');
+}
+function setPTool(t) {
+  pTool = t;
+  document.querySelectorAll('.ptool').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('ptool-'+t);
+  if (el) el.classList.add('active');
+}
+function setPColor(c) {
+  pColor = c;
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.classList.toggle('active', s.style.background===c || s.style.background===hexRgb(c));
+  });
+  document.getElementById('p-custom').value = c;
+}
+function hexRgb(h) {
+  if (!h||h[0]!=='#') return h;
+  return `rgb(${parseInt(h.slice(1,3),16)}, ${parseInt(h.slice(3,5),16)}, ${parseInt(h.slice(5,7),16)})`;
+}
+function pdDown(x, y) {
+  pDrawing=true; pSX=x; pSY=y;
+  pHistory.push(pCtx.getImageData(0,0,pCanvas.width,pCanvas.height));
+  if (pHistory.length>40) pHistory.shift();
+  pSnap = pCtx.getImageData(0,0,pCanvas.width,pCanvas.height);
+  if (pTool==='text') {
+    pDrawing=false;
+    const txt=prompt('텍스트 입력:');
+    if (txt) { pCtx.font=`${Math.max(14,pBrushSize*5)}px 'Noto Sans KR',sans-serif`; pCtx.fillStyle=pColor; pCtx.fillText(txt,x,y); }
+    return;
+  }
+  if (pTool==='pen'||pTool==='eraser') { pCtx.beginPath(); pCtx.moveTo(x,y); }
+}
+function pdMove(x, y) {
+  if (!pDrawing) return;
+  if (pTool==='pen') {
+    pCtx.strokeStyle=pColor; pCtx.lineWidth=pBrushSize; pCtx.lineCap='round'; pCtx.lineJoin='round';
+    pCtx.lineTo(x,y); pCtx.stroke();
+  } else if (pTool==='eraser') {
+    pCtx.strokeStyle='#ffffff'; pCtx.lineWidth=pBrushSize*3; pCtx.lineCap='round';
+    pCtx.lineTo(x,y); pCtx.stroke();
+  } else {
+    pCtx.putImageData(pSnap,0,0);
+    pCtx.strokeStyle=pColor; pCtx.lineWidth=pBrushSize; pCtx.beginPath();
+    if (pTool==='line')   { pCtx.moveTo(pSX,pSY); pCtx.lineTo(x,y); pCtx.stroke(); }
+    if (pTool==='rect')   { pCtx.strokeRect(pSX,pSY,x-pSX,y-pSY); }
+    if (pTool==='circle') { const rx=(x-pSX)/2,ry=(y-pSY)/2; pCtx.ellipse(pSX+rx,pSY+ry,Math.abs(rx),Math.abs(ry),0,0,Math.PI*2); pCtx.stroke(); }
+    if (pTool==='arrow')  {
+      pCtx.moveTo(pSX,pSY); pCtx.lineTo(x,y); pCtx.stroke();
+      const a=Math.atan2(y-pSY,x-pSX), len=12+pBrushSize;
+      pCtx.beginPath();
+      pCtx.moveTo(x,y); pCtx.lineTo(x-len*Math.cos(a-.45),y-len*Math.sin(a-.45));
+      pCtx.moveTo(x,y); pCtx.lineTo(x-len*Math.cos(a+.45),y-len*Math.sin(a+.45));
+      pCtx.stroke();
+    }
+  }
+}
+function undoPaint() { if (pHistory.length>0) pCtx.putImageData(pHistory.pop(),0,0); }
+function clearPaint() { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.fillStyle='#ffffff'; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height); pHistory=[]; }
+
+function openPaint(bgUrl, target) {
+  paintSaveTarget = target;
+  document.getElementById('paint-overlay').classList.add('open');
+  setTimeout(() => {
+    initPaint(); clearPaint();
+    if (bgUrl) {
+      const img=new Image();
+      img.onload=()=>{ const cw=pCanvas.width,ch=pCanvas.height,s=Math.min(cw/img.width,ch/img.height); pCtx.drawImage(img,(cw-img.width*s)/2,(ch-img.height*s)/2,img.width*s,img.height*s); };
+      img.src=bgUrl;
+    }
+  }, 50);
+}
+function openPaintEdit(src, id) { openPaint(src, id); }
+function closePaint() { document.getElementById('paint-overlay').classList.remove('open'); }
+async function savePaint() {
+  const dataUrl = pCanvas.toDataURL('image/png');
+  if (paintSaveTarget === 'create') {
+    createImgs.push(dataUrl);
+    const g=document.getElementById('create-img-grid');
+    const img=document.createElement('img'); img.className='img-thumb'; img.src=dataUrl; g.appendChild(img);
+  } else {
+    const t=tasks.find(t=>t.id===paintSaveTarget);
+    if (t) { if (!t.images) t.images=[]; t.images.push(dataUrl); renderList(); await syncUpdate(t); }
+  }
+  closePaint();
+}
+function loadImgForPaint(input, target) {
+  const file=input.files[0]; if (!file) return;
+  const r=new FileReader(); r.onload=e=>openPaint(e.target.result,target); r.readAsDataURL(file); input.value='';
+}
+function uploadForTask(id) {
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>openPaint(ev.target.result,id); r.readAsDataURL(f); };
+  inp.click();
+}
+
+function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+load();
+</script>
+</body>
+</html>
