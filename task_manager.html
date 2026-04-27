@@ -20,22 +20,32 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 /* ── 레이아웃 ── */
 .shell{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:200px;flex-shrink:0;background:var(--accent);display:flex;flex-direction:column;padding:28px 0 20px}
+.sidebar{width:210px;flex-shrink:0;background:var(--accent);display:flex;flex-direction:column;padding:28px 0 20px}
 .sidebar-logo{padding:0 20px 24px;font-size:13px;font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:12px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans KR',sans-serif;transition:all .15s}
 .nav-item:hover{color:#fff;background:rgba(255,255,255,.08)}
 .nav-item.active{color:#fff;background:rgba(255,255,255,.15);font-weight:500}
 .sidebar-footer{margin-top:auto;padding:14px 20px 0;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:rgba(255,255,255,.3);font-family:'JetBrains Mono',monospace;word-break:break-all}
 .main{flex:1;overflow-y:auto;padding:32px 36px}
-@media(max-width:640px){
-  .shell{flex-direction:column;height:auto}
-  .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;padding:14px 16px 0;gap:0}
-  .sidebar-logo{padding:0 16px 14px;border-bottom:none;border-right:1px solid rgba(255,255,255,.12);margin-bottom:0;margin-right:8px}
-  .nav-item{width:auto;padding:8px 12px;font-size:12px}
+
+/* ── 모바일 ── */
+@media(max-width:680px){
+  .shell{flex-direction:column;height:auto;min-height:100vh}
+  .sidebar{width:100%;flex-direction:row;align-items:center;flex-wrap:nowrap;padding:0;overflow-x:auto;gap:0}
+  .sidebar-logo{padding:12px 16px;border-bottom:none;border-right:1px solid rgba(255,255,255,.2);margin-bottom:0;margin-right:0;white-space:nowrap;font-size:12px}
+  .nav-item{width:auto;padding:14px 16px;font-size:13px;white-space:nowrap;flex-shrink:0}
   .sidebar-footer{display:none}
-  .main{padding:20px 16px}
+  .main{padding:16px 14px}
   .form-row{grid-template-columns:1fr}
-  .task-actions{flex-wrap:wrap}
+  .task-actions{flex-wrap:wrap;gap:6px}
+  .stats{grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{padding:10px 12px}
+  .stat-value{font-size:18px}
+  .page-title{font-size:17px;margin-bottom:16px}
+  .filter-bar{flex-direction:column;align-items:flex-start !important;gap:10px !important}
+  .filter-group{flex-wrap:wrap}
+  .modal{width:95vw !important;padding:18px}
+  .task-item{padding:14px}
 }
 
 /* ── 페이지 ── */
@@ -49,19 +59,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .form-group{margin-bottom:14px}
 .form-group:last-child{margin-bottom:0}
 label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;letter-spacing:.03em;text-transform:uppercase}
-input[type=text],input[type=date],select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--text);background:var(--surface);font-family:'Noto Sans KR',sans-serif;transition:border-color .15s;outline:none}
+input[type=text],input[type=date],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:14px;color:var(--text);background:var(--surface);font-family:'Noto Sans KR',sans-serif;transition:border-color .15s;outline:none}
 input:focus,textarea:focus{border-color:var(--accent)}
-textarea{resize:vertical;min-height:80px;line-height:1.6}
+textarea{resize:vertical;min-height:80px;line-height:1.7}
 
 /* ── 버튼 ── */
 .btn{padding:8px 14px;border-radius:var(--r);font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
 .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500}
 .btn-accent:hover{background:#1e3429;border-color:#1e3429;color:#fff}
-.btn-full{width:100%;justify-content:center;padding:11px;font-size:14px}
+.btn-full{width:100%;justify-content:center;padding:12px;font-size:15px}
 .btn-danger{color:var(--danger);border-color:transparent}
 .btn-danger:hover{background:var(--danger-light)}
-.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:6px}
 
 /* ── 이미지 ── */
 .img-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -70,27 +80,33 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .img-thumb:hover{opacity:.8}
 
 /* ── 업무 카드 ── */
-.task-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;margin-bottom:10px;transition:border-color .15s}
+.task-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:12px;transition:border-color .15s}
 .task-item:hover{border-color:var(--border2)}
-.task-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
-.task-content{font-size:14px;font-weight:500;line-height:1.5}
-.task-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
-.task-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
-.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.task-title-bar{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.task-title-text{font-size:16px;font-weight:700;color:var(--accent);line-height:1.4}
+.task-content-text{font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap;background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--border)}
+.task-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.task-actions{display:flex;gap:6px;flex-wrap:wrap}
+.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
 .tag.date-set{background:var(--accent-light);color:var(--accent);border-color:#b8d5c4}
 .tag.date-none{background:var(--accent2-light);color:var(--accent2);border-color:#e8c990}
+.task-section{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.task-section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 
 /* ── 논의 프리뷰 ── */
-.disc-preview{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
-.disc-preview-item{background:var(--surface2);border-radius:6px;padding:6px 10px;margin-bottom:4px;font-size:12px}
-.disc-preview-meta{color:var(--text3);margin-bottom:2px}
-.disc-preview-text{color:var(--text)}
+.disc-bubble-preview{background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:3px solid var(--border2)}
+.disc-bubble-preview-meta{font-size:11px;color:var(--text3);margin-bottom:3px}
+.disc-bubble-preview-text{font-size:13px;color:var(--text);line-height:1.6}
 
 /* ── 통계 ── */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
 .stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .stat-value{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* ── 인라인 편집 ── */
+.edit-field{width:100%;padding:8px 10px;border:1px solid var(--accent);border-radius:var(--r);font-size:13px;color:var(--text);background:#fff;font-family:'Noto Sans KR',sans-serif;outline:none}
+.edit-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,74,62,.1)}
 
 /* ── 달력 ── */
 .cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
@@ -105,6 +121,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 .cal-day{width:24px;height:24px;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center}
 .cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
 .cal-dot{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.cal-cell.has-tasks{border:1.5px solid transparent}
+.space-chip{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;font-weight:500;margin-top:3px;margin-right:2px;white-space:nowrap}
+.cal-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 .cal-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-top:14px}
 .cal-detail-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:12px}
 .cal-task-row{padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
@@ -161,6 +182,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
     <div class="page active" id="page-create">
       <div class="page-title">업무 생성 <span>새 업무를 등록합니다</span></div>
       <div class="card">
+        <div class="form-group"><label>제목 <span style="font-size:11px;color:var(--text3);text-transform:none;letter-spacing:0">달력에 표시될 짧은 이름</span></label><input type="text" id="f-title" placeholder="예: 조명 교체, 바닥 마감 점검" maxlength="20"></div>
         <div class="form-row">
           <div class="form-group"><label>공간</label><input type="text" id="f-space" placeholder="예: 본관 2층"></div>
           <div class="form-group"><label>Zone</label><input type="text" id="f-zone" placeholder="예: Zone A"></div>
@@ -191,12 +213,31 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
         <div class="stat"><div class="stat-label">날짜 배정됨</div><div class="stat-value" id="st-dated">0</div></div>
         <div class="stat"><div class="stat-label">미배정</div><div class="stat-value" id="st-none">0</div></div>
       </div>
+      <div class="filter-bar" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">공간</div>
+          <div class="filter-group" id="space-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">작업자</div>
+          <div class="filter-group" id="worker-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">날짜</div>
+          <div class="filter-group" style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="btn btn-sm" id="filter-all-btn" onclick="setDateFilter('all')">전체</button>
+            <button class="btn btn-sm" id="filter-undated-btn" onclick="setDateFilter('undated')">미배정만</button>
+            <button class="btn btn-sm" id="filter-dated-btn" onclick="setDateFilter('dated')">배정됨만</button>
+          </div>
+        </div>
+      </div>
       <div id="task-list"></div>
     </div>
 
     <!-- 달력 -->
     <div class="page" id="page-calendar">
       <div class="page-title">달력 확인</div>
+      <div id="cal-legend" class="cal-legend"></div>
       <div class="cal-wrap">
         <div class="cal-header">
           <div class="cal-month" id="cal-month-label"></div>
@@ -281,6 +322,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL_lVV4HnEP6HjG0jv8Z4j
 let tasks = [], calYear, calMonth;
 let pendingDateId = null, pendingDiscId = null;
 let createImgs = [];
+let filterSpace = 'all', filterWorker = 'all', filterDate = 'all';
 
 /* ── 상태 표시 ── */
 function setStatus(msg, err) {
@@ -365,6 +407,7 @@ async function createTask() {
   if (!content) { alert('내용을 입력해 주세요.'); return; }
   const task = {
     id: Date.now(),
+    title:   document.getElementById('f-title').value.trim(),
     space:   document.getElementById('f-space').value.trim(),
     zone:    document.getElementById('f-zone').value.trim(),
     content,
@@ -375,7 +418,7 @@ async function createTask() {
     createdAt: new Date().toISOString()
   };
   tasks.push(task);
-  ['f-space','f-zone','f-content','f-worker','f-manager'].forEach(id => document.getElementById(id).value = '');
+  ['f-title','f-space','f-zone','f-content','f-worker','f-manager'].forEach(id => document.getElementById(id).value = '');
   createImgs = [];
   document.getElementById('create-img-grid').innerHTML = '';
   goTo('list');
@@ -450,54 +493,193 @@ async function addDisc() {
   await syncUpdate(t);
 }
 
+/* ── 필터 ── */
+function setSpaceFilter(v)  { filterSpace = v;  renderList(); }
+function setWorkerFilter(v) { filterWorker = v; renderList(); }
+function setDateFilter(v)   { filterDate = v;   renderList(); }
+
+function renderFilters() {
+  const spaces = ['all', ...new Set(tasks.map(t => t.space).filter(Boolean))];
+  document.getElementById('space-filters').innerHTML = spaces.map(s =>
+    `<button class="btn btn-sm${filterSpace===s?' btn-accent':''}" onclick="setSpaceFilter('${s.replace(/'/g,"\\'")}')">` +
+    esc(s==='all'?'전체':s) + '</button>'
+  ).join('');
+  const workers = ['all', ...new Set(tasks.map(t => t.worker).filter(Boolean))];
+  document.getElementById('worker-filters').innerHTML = workers.map(w =>
+    `<button class="btn btn-sm${filterWorker===w?' btn-accent':''}" onclick="setWorkerFilter('${w.replace(/'/g,"\\'")}')">` +
+    esc(w==='all'?'전체':w) + '</button>'
+  ).join('');
+  ['all','undated','dated'].forEach(m => {
+    const el = document.getElementById('filter-'+m+'-btn');
+    if (el) el.className = 'btn btn-sm'+(filterDate===m?' btn-accent':'');
+  });
+}
+
+/* ── 인라인 편집 ── */
+async function saveInlineEdit(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  t.title   = document.getElementById('edit-title-'+id).value.trim();
+  t.space   = document.getElementById('edit-space-'+id).value.trim();
+  t.zone    = document.getElementById('edit-zone-'+id).value.trim();
+  t.content = document.getElementById('edit-content-'+id).value.trim();
+  t.worker  = document.getElementById('edit-worker-'+id).value.trim();
+  t.manager = document.getElementById('edit-manager-'+id).value.trim();
+  renderList();
+  await syncUpdate(t);
+}
+function toggleEdit(id) {
+  const view = document.getElementById('view-'+id);
+  const edit = document.getElementById('edit-'+id);
+  const isEdit = edit.style.display !== 'none';
+  view.style.display = isEdit ? '' : 'none';
+  edit.style.display = isEdit ? 'none' : '';
+}
+
 /* ── 목록 렌더링 ── */
 function renderList() {
   const total = tasks.length, dated = tasks.filter(t => t.date).length;
-  document.getElementById('st-total').textContent  = total;
-  document.getElementById('st-dated').textContent  = dated;
-  document.getElementById('st-none').textContent   = total - dated;
-  document.getElementById('list-count').textContent = total ? total + '건' : '';
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-dated').textContent = dated;
+  document.getElementById('st-none').textContent  = total - dated;
+  renderFilters();
   const c = document.getElementById('task-list');
   if (!tasks.length) {
     c.innerHTML = '<div class="empty"><strong>업무가 없습니다</strong>업무 생성 탭에서 새 업무를 추가하세요.</div>'; return;
   }
-  const sorted = [...tasks].sort((a,b) => {
-    if (!a.date && !b.date) return 0; if (!a.date) return -1; if (!b.date) return 1;
+  let filtered = [...tasks];
+  if (filterSpace  !== 'all') filtered = filtered.filter(t => t.space  === filterSpace);
+  if (filterWorker !== 'all') filtered = filtered.filter(t => t.worker === filterWorker);
+  if (filterDate === 'undated') filtered = filtered.filter(t => !t.date);
+  if (filterDate === 'dated')   filtered = filtered.filter(t => !!t.date);
+  document.getElementById('list-count').textContent = filtered.length !== total ? filtered.length+' / '+total+'건' : total+'건';
+  if (!filtered.length) {
+    c.innerHTML = '<div class="empty"><strong>해당하는 업무가 없습니다</strong>필터 조건을 바꿔보세요.</div>'; return;
+  }
+  const sorted = [...filtered].sort((a,b)=>{
+    if(!a.date&&!b.date)return 0;if(!a.date)return-1;if(!b.date)return 1;
     return a.date.localeCompare(b.date);
   });
-  c.innerHTML = sorted.map(t => `
-    <div class="task-item">
-      <div class="task-header">
-        <div style="flex:1;min-width:0">
-          <div class="task-content">${esc(t.content)}</div>
-          <div class="task-meta">
-            ${t.space   ? `<span class="tag">${esc(t.space)}</span>` : ''}
-            ${t.zone    ? `<span class="tag">${esc(t.zone)}</span>` : ''}
-            ${t.worker  ? `<span class="tag">작업 ${esc(t.worker)}</span>` : ''}
-            ${t.manager ? `<span class="tag">담당 ${esc(t.manager)}</span>` : ''}
-            <span class="tag ${t.date ? 'date-set' : 'date-none'}">${t.date || '날짜 미정'}</span>
-          </div>
-        </div>
-        <div class="task-actions">
-          <button class="btn btn-sm" onclick="openDateModal(${t.id})">날짜 배정</button>
-          ${t.date ? `<button class="btn btn-sm btn-danger" onclick="clearDate(${t.id})">날짜 해제</button>` : ''}
-          <button class="btn btn-sm" onclick="openDiscModal(${t.id})">논의${t.discussions && t.discussions.length ? ` (${t.discussions.length})` : ''}</button>
-          <button class="btn btn-sm" onclick="openPaint(null,${t.id})">그림판</button>
-          <button class="btn btn-sm" onclick="uploadForTask(${t.id})">사진</button>
-          <button class="btn btn-sm btn-danger" onclick="delTask(${t.id})">삭제</button>
-        </div>
-      </div>
-      ${t.images && t.images.length ? `<div class="img-grid" style="margin-top:10px">${t.images.map(p => `<img class="img-thumb" src="${p}" onclick="openPaintEdit('${p}',${t.id})">`).join('')}</div>` : ''}
-      ${t.discussions && t.discussions.length ? `<div class="disc-preview">
-        ${t.discussions.slice(-2).map(d => `<div class="disc-preview-item"><div class="disc-preview-meta">${d.author ? esc(d.author) + ' · ' : ''}${d.at}</div><div class="disc-preview-text">${esc(d.text.slice(0,80))}${d.text.length>80?'…':''}</div></div>`).join('')}
-        ${t.discussions.length > 2 ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">+ ${t.discussions.length-2}건 더 있음</div>` : ''}
-      </div>` : ''}
-    </div>`).join('');
+  c.innerHTML = sorted.map(t => {
+    const sc = t.space ? getSpaceColor(t.space) : null;
+    const bl = sc ? 'border-left:4px solid '+sc.border+';' : '';
+    return '<div class="task-item" style="'+bl+'">' +
+
+      '<div id="view-'+t.id+'">' +
+        '<div class="task-title-bar">' +
+          '<div style="flex:1;min-width:0">' +
+            (t.title ? '<div class="task-title-text">'+esc(t.title)+'</div>' : '') +
+            '<div class="task-meta" style="margin-top:'+(t.title?'6px':'0')+'">' +
+              (t.space   ? '<span class="tag" style="'+(sc?'background:'+sc.bg+';color:'+sc.text+';border-color:'+sc.border:'')+'">'+esc(t.space)+'</span>' : '') +
+              (t.zone    ? '<span class="tag">'+esc(t.zone)+'</span>' : '') +
+              (t.worker  ? '<span class="tag">👷 '+esc(t.worker)+'</span>' : '') +
+              (t.manager ? '<span class="tag">📋 '+esc(t.manager)+'</span>' : '') +
+              '<span class="tag '+(t.date?'date-set':'date-none')+'">'+(t.date||'날짜 미정')+'</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="task-actions">' +
+            '<button class="btn btn-sm" onclick="openDateModal('+t.id+')">📅 날짜</button>' +
+            (t.date ? '<button class="btn btn-sm btn-danger" onclick="clearDate('+t.id+')">해제</button>' : '') +
+            '<button class="btn btn-sm" onclick="toggleEdit('+t.id+')">✏ 수정</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="delTask('+t.id+')">삭제</button>' +
+          '</div>' +
+        '</div>' +
+        (t.content ? '<div class="task-content-text">'+esc(t.content)+'</div>' : '') +
+        (t.images && t.images.length ?
+          '<div class="task-section"><div class="task-section-label">이미지</div>' +
+          '<div class="img-grid">'+t.images.map(p=>'<img class="img-thumb" src="'+p+'" onclick="openPaintEdit(this.src,'+t.id+')">').join('')+'</div>' +
+          '<div style="display:flex;gap:6px;margin-top:8px">' +
+            '<button class="btn btn-sm" onclick="openPaint(null,'+t.id+')">✏ 그림판</button>' +
+            '<button class="btn btn-sm" onclick="uploadForTask('+t.id+')">↑ 사진 추가</button>' +
+          '</div></div>'
+          :
+          '<div style="display:flex;gap:6px;margin-top:10px">' +
+            '<button class="btn btn-sm" onclick="openPaint(null,'+t.id+')">✏ 그림판</button>' +
+            '<button class="btn btn-sm" onclick="uploadForTask('+t.id+')">↑ 사진 추가</button>' +
+          '</div>'
+        ) +
+        (t.discussions && t.discussions.length ?
+          '<div class="task-section"><div class="task-section-label">논의 기록 '+t.discussions.length+'건</div>' +
+          t.discussions.slice(-3).map(d=>
+            '<div class="disc-bubble-preview">' +
+              '<div class="disc-bubble-preview-meta">'+(d.author?'<strong>'+esc(d.author)+'</strong> · ':'')+d.at+'</div>' +
+              '<div class="disc-bubble-preview-text">'+esc(d.text)+'</div>' +
+            '</div>'
+          ).join('') +
+          (t.discussions.length>3 ? '<div style="font-size:11px;color:var(--text3);margin-top:4px">+ '+(t.discussions.length-3)+'건 더 있음</div>' : '') +
+          '<button class="btn btn-sm" style="margin-top:8px" onclick="openDiscModal('+t.id+')">+ 논의 추가</button>' +
+          '</div>'
+          :
+          '<div style="margin-top:10px"><button class="btn btn-sm" onclick="openDiscModal('+t.id+')">💬 논의 추가</button></div>'
+        ) +
+      '</div>' +
+
+      '<div id="edit-'+t.id+'" style="display:none">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px">✏ 업무 수정</div>' +
+        '<div class="form-group"><label>제목</label><input class="edit-field" id="edit-title-'+t.id+'" type="text" value="'+esc(t.title||'')+'" placeholder="달력에 표시될 짧은 이름" maxlength="20"></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+          '<div class="form-group"><label>공간</label><input class="edit-field" id="edit-space-'+t.id+'" type="text" value="'+esc(t.space||'')+'"></div>' +
+          '<div class="form-group"><label>Zone</label><input class="edit-field" id="edit-zone-'+t.id+'" type="text" value="'+esc(t.zone||'')+'"></div>' +
+        '</div>' +
+        '<div class="form-group"><label>내용</label><textarea class="edit-field" id="edit-content-'+t.id+'" style="min-height:80px">'+esc(t.content||'')+'</textarea></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+          '<div class="form-group"><label>작업자</label><input class="edit-field" id="edit-worker-'+t.id+'" type="text" value="'+esc(t.worker||'')+'"></div>' +
+          '<div class="form-group"><label>담당자</label><input class="edit-field" id="edit-manager-'+t.id+'" type="text" value="'+esc(t.manager||'')+'"></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:4px">' +
+          '<button class="btn btn-accent btn-sm" onclick="saveInlineEdit('+t.id+')">저장</button>' +
+          '<button class="btn btn-sm" onclick="toggleEdit('+t.id+')">취소</button>' +
+        '</div>' +
+      '</div>' +
+
+    '</div>';
+  }).join('');
+}
+
+/* ── 공간 색상 팔레트 ── */
+const SPACE_COLORS = [
+  {bg:'#dbeafe',border:'#93c5fd',text:'#1e40af'},
+  {bg:'#fce7f3',border:'#f9a8d4',text:'#9d174d'},
+  {bg:'#dcfce7',border:'#86efac',text:'#166534'},
+  {bg:'#fef9c3',border:'#fde047',text:'#854d0e'},
+  {bg:'#ede9fe',border:'#c4b5fd',text:'#5b21b6'},
+  {bg:'#ffedd5',border:'#fdba74',text:'#9a3412'},
+  {bg:'#cffafe',border:'#67e8f9',text:'#155e75'},
+  {bg:'#fce7f3',border:'#f9a8d4',text:'#831843'},
+  {bg:'#f0fdf4',border:'#bbf7d0',text:'#14532d'},
+  {bg:'#fef2f2',border:'#fca5a5',text:'#991b1b'},
+];
+const spaceColorMap = {};
+function getSpaceColor(space) {
+  if (!space) return null;
+  if (!spaceColorMap[space]) {
+    const keys = Object.keys(spaceColorMap).length;
+    spaceColorMap[space] = SPACE_COLORS[keys % SPACE_COLORS.length];
+  }
+  return spaceColorMap[space];
+}
+function buildSpaceColorMap() {
+  // 먼저 기존 공간들 순서대로 색 배정
+  const spaces = [...new Set(tasks.map(t => t.space).filter(Boolean))];
+  spaces.forEach(s => getSpaceColor(s));
+}
+
+/* ── 달력 범례 ── */
+function renderCalLegend() {
+  const spaces = [...new Set(tasks.filter(t => t.date).map(t => t.space).filter(Boolean))];
+  if (!spaces.length) { document.getElementById('cal-legend').innerHTML = ''; return; }
+  document.getElementById('cal-legend').innerHTML =
+    spaces.map(s => {
+      const c = getSpaceColor(s);
+      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${c.bg};border:1.5px solid ${c.border}"></div>${esc(s)}</div>`;
+    }).join('');
 }
 
 /* ── 달력 ── */
 function renderCalendar() {
+  buildSpaceColorMap();
   document.getElementById('cal-month-label').textContent = `${calYear}년 ${calMonth+1}월`;
+  renderCalLegend();
   const grid = document.getElementById('cal-grid');
   const dows = ['일','월','화','수','목','금','토'];
   let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
@@ -505,19 +687,89 @@ function renderCalendar() {
   const last  = new Date(calYear, calMonth+1, 0).getDate();
   const pLast = new Date(calYear, calMonth, 0).getDate();
   const todayStr = new Date().toISOString().slice(0,10);
-  for (let i = 0; i < first; i++)
-    html += `<div class="cal-cell other"><div class="cal-day">${pLast-first+1+i}</div></div>`;
+  // 이전 달 날짜
+  const prevYear = calMonth === 0 ? calYear-1 : calYear;
+  const prevMonth = calMonth === 0 ? 12 : calMonth;
+  for (let i = 0; i < first; i++) {
+    const d = pLast - first + 1 + i;
+    const ds = `${prevYear}-${String(prevMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt = tasks.filter(t => t.date === ds);
+    const spaces = [...new Set(dt.map(t => t.space).filter(Boolean))];
+    let bgStyle = 'opacity:.55;';
+    if (spaces.length === 1) {
+      const c = getSpaceColor(spaces[0]);
+      bgStyle = `background:${c.bg};border:1.5px solid ${c.border};opacity:.55;`;
+    } else if (spaces.length > 1) {
+      const cols = spaces.slice(0,4).map(s => getSpaceColor(s).bg);
+      const step = 100/cols.length;
+      const stops = cols.map((c,i) => `${c} ${i*step}%, ${c} ${(i+1)*step}%`).join(', ');
+      bgStyle = `background:linear-gradient(135deg,${stops});border:1.5px solid #cbd5e1;opacity:.55;`;
+    }
+    const chips = dt.map(t => {
+      const c = t.space ? getSpaceColor(t.space) : {bg:'#f0efe9',border:'#ccc9be',text:'#6b6860'};
+      const label = t.title ? t.title : (t.content ? t.content.slice(0,10) : '업무');
+      return `<span class="space-chip" style="background:${c.bg};color:${c.text};border:1px solid ${c.border}">${esc(label)}</span>`;
+    }).join('');
+    html += `<div class="cal-cell other" style="${bgStyle}" onclick="showCalDay('${ds}')">
+      <div class="cal-day" style="color:var(--text3)">${d}</div>
+      ${chips}
+    </div>`;
+  }
+
+  // 이번 달 날짜
   for (let d = 1; d <= last; d++) {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt = tasks.filter(t => t.date === ds);
-    html += `<div class="cal-cell${ds===todayStr?' today':''}" onclick="showCalDay('${ds}')">
+    const spaces = [...new Set(dt.map(t => t.space).filter(Boolean))];
+    let bgStyle = '';
+    if (spaces.length === 1) {
+      const c = getSpaceColor(spaces[0]);
+      bgStyle = `background:${c.bg};border:1.5px solid ${c.border};`;
+    } else if (spaces.length > 1) {
+      const cols = spaces.slice(0,4).map(s => getSpaceColor(s).bg);
+      const step = 100/cols.length;
+      const stops = cols.map((c,i) => `${c} ${i*step}%, ${c} ${(i+1)*step}%`).join(', ');
+      bgStyle = `background:linear-gradient(135deg,${stops});border:1.5px solid #cbd5e1;`;
+    }
+    const chips = dt.map(t => {
+      const c = t.space ? getSpaceColor(t.space) : {bg:'#f0efe9',border:'#ccc9be',text:'#6b6860'};
+      const label = t.title ? t.title : (t.content ? t.content.slice(0,10) : '업무');
+      return `<span class="space-chip" style="background:${c.bg};color:${c.text};border:1px solid ${c.border}">${esc(label)}</span>`;
+    }).join('');
+    html += `<div class="cal-cell${ds===todayStr?' today':''}" style="${bgStyle}" onclick="showCalDay('${ds}')">
       <div class="cal-day">${d}</div>
-      <div class="cal-dots">${dt.map(() => `<span class="cal-dot"></span>`).join('')}</div>
+      ${chips}
     </div>`;
   }
+
+  // 다음 달 날짜
+  const nextYear = calMonth === 11 ? calYear+1 : calYear;
+  const nextMonth = calMonth === 11 ? 1 : calMonth+2;
   const rem = (7 - (first+last)%7)%7;
-  for (let d = 1; d <= rem; d++)
-    html += `<div class="cal-cell other"><div class="cal-day">${d}</div></div>`;
+  for (let d = 1; d <= rem; d++) {
+    const ds = `${nextYear}-${String(nextMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt = tasks.filter(t => t.date === ds);
+    const spaces = [...new Set(dt.map(t => t.space).filter(Boolean))];
+    let bgStyle = 'opacity:.55;';
+    if (spaces.length === 1) {
+      const c = getSpaceColor(spaces[0]);
+      bgStyle = `background:${c.bg};border:1.5px solid ${c.border};opacity:.55;`;
+    } else if (spaces.length > 1) {
+      const cols = spaces.slice(0,4).map(s => getSpaceColor(s).bg);
+      const step = 100/cols.length;
+      const stops = cols.map((c,i) => `${c} ${i*step}%, ${c} ${(i+1)*step}%`).join(', ');
+      bgStyle = `background:linear-gradient(135deg,${stops});border:1.5px solid #cbd5e1;opacity:.55;`;
+    }
+    const chips = dt.map(t => {
+      const c = t.space ? getSpaceColor(t.space) : {bg:'#f0efe9',border:'#ccc9be',text:'#6b6860'};
+      const label = t.title ? t.title : (t.content ? t.content.slice(0,10) : '업무');
+      return `<span class="space-chip" style="background:${c.bg};color:${c.text};border:1px solid ${c.border}">${esc(label)}</span>`;
+    }).join('');
+    html += `<div class="cal-cell other" style="${bgStyle}" onclick="showCalDay('${ds}')">
+      <div class="cal-day" style="color:var(--text3)">${d}</div>
+      ${chips}
+    </div>`;
+  }
   grid.innerHTML = html;
   document.getElementById('cal-detail').innerHTML = '';
 }
@@ -529,12 +781,47 @@ function showCalDay(ds) {
   }
   el.innerHTML = `<div class="cal-detail">
     <div class="cal-detail-title">${ds} · 업무 ${dt.length}건</div>
-    ${dt.map(t => `<div class="cal-task-row">
-      <div class="cal-task-content">${esc(t.content)}</div>
-      <div class="cal-task-meta">${[t.space,t.zone,t.worker?'작업 '+t.worker:'',t.manager?'담당 '+t.manager:''].filter(Boolean).join(' · ')}${t.discussions&&t.discussions.length?` · 논의 ${t.discussions.length}건`:''}</div>
-      ${t.images&&t.images.length?`<div class="img-grid" style="margin-top:8px">${t.images.map(p=>`<img class="img-thumb" src="${p}">`).join('')}</div>`:''}
-    </div>`).join('')}
+    ${dt.map(t => {
+      const c = t.space ? getSpaceColor(t.space) : null;
+      const spaceBadge = c ? `<span class="space-chip" style="background:${c.bg};color:${c.text};border:1px solid ${c.border}">${esc(t.space)}</span>` : '';
+      return `<div class="cal-task-row" style="${c ? 'border-left:3px solid '+c.border+';' : ''}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+            ${spaceBadge}
+            <div>
+              ${t.title ? `<div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:1px">${esc(t.title)}</div>` : ''}
+              <span class="cal-task-content">${esc(t.content)}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <input type="date" value="${t.date||''}" onchange="calChangeDate(${t.id},this.value)"
+              style="font-size:11px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:inherit;cursor:pointer">
+            ${t.date ? `<button class="btn btn-sm btn-danger" style="font-size:11px;padding:3px 8px" onclick="calClearDate(${t.id})">해제</button>` : ''}
+          </div>
+        </div>
+        <div class="cal-task-meta">${[t.zone,t.worker?'작업 '+t.worker:'',t.manager?'담당 '+t.manager:''].filter(Boolean).join(' · ')}${t.discussions&&t.discussions.length?` · 논의 ${t.discussions.length}건`:''}</div>
+        ${t.images&&t.images.length?`<div class="img-grid" style="margin-top:8px">${t.images.map(p=>`<img class="img-thumb" src="${p}">`).join('')}</div>`:''}
+      </div>`;
+    }).join('')}
   </div>`;
+}
+async function calChangeDate(id, newDate) {
+  if (!newDate) return;
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const prevDate = t.date;
+  t.date = newDate;
+  renderCalendar();
+  // 날짜가 바뀌면 새 날짜로 상세 패널 갱신
+  showCalDay(newDate);
+  await syncUpdate(t);
+}
+async function calClearDate(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  t.date = null;
+  renderCalendar();
+  await syncUpdate(t);
 }
 function changeMonth(d) {
   if (d===0) { const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); }
