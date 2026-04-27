@@ -172,6 +172,19 @@ textarea{resize:vertical;min-height:80px;line-height:1.7}
 
 .empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:13px}
 .empty strong{display:block;font-size:16px;color:var(--text2);margin-bottom:6px}
+
+/* ── 체크리스트 ── */
+.checklist-input-row{display:flex;gap:6px;margin-bottom:6px}
+.checklist-input-row input{flex:1;padding:7px 10px;font-size:13px}
+.checklist-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:7px;margin-bottom:5px;border:1px solid var(--border);transition:background .1s}
+.checklist-item.done{background:var(--accent-light)}
+.checklist-item.done .cl-text{text-decoration:line-through;color:var(--text3)}
+.cl-check{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
+.cl-text{flex:1;font-size:13px;color:var(--text);line-height:1.4}
+.cl-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:0 2px;line-height:1}
+.cl-del:hover{color:var(--danger)}
+.cl-progress{font-size:11px;color:var(--text3);margin-bottom:6px}
+.cl-progress span{font-weight:600;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -202,6 +215,14 @@ textarea{resize:vertical;min-height:80px;line-height:1.7}
         <div class="form-row">
           <div class="form-group"><label>작업자</label><input type="text" id="f-worker" placeholder="실제 작업하는 사람"></div>
           <div class="form-group"><label>담당자</label><input type="text" id="f-manager" placeholder="책임 담당자 또는 팀명"></div>
+        </div>
+        <div class="form-group">
+          <label>밑작업 &amp; 준비물 체크리스트</label>
+          <div class="checklist-input-row">
+            <input type="text" id="cl-new-item" placeholder="항목 입력 후 추가 버튼 또는 Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();addClItem()}">
+            <button class="btn btn-sm" onclick="addClItem()">+ 추가</button>
+          </div>
+          <div id="cl-list"></div>
         </div>
         <div class="form-group">
           <label>이미지 / 그림판</label>
@@ -332,7 +353,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL_lVV4HnEP6HjG0jv8Z4j
 
 let tasks = [], calYear, calMonth;
 let pendingDateId = null, pendingDiscId = null;
-let createImgs = [];
+let createImgs = [], createChecklist = [];
 let filterSpace = 'all', filterWorker = 'all', filterDate = 'all';
 
 /* ── 상태 표시 ── */
@@ -425,13 +446,17 @@ async function createTask() {
     worker:  document.getElementById('f-worker').value.trim(),
     manager: document.getElementById('f-manager').value.trim(),
     images:  [...createImgs],
+    checklist: [...createChecklist],
     date: null, discussions: [],
     createdAt: new Date().toISOString()
   };
   tasks.push(task);
   ['f-title','f-space','f-zone','f-content','f-worker','f-manager'].forEach(id => document.getElementById(id).value = '');
   createImgs = [];
+  createChecklist = [];
   document.getElementById('create-img-grid').innerHTML = '';
+  document.getElementById('cl-list').innerHTML = '';
+  document.getElementById('cl-new-item').value = '';
   goTo('list');
   await syncCreate(task);
 }
@@ -536,6 +561,7 @@ async function saveInlineEdit(id) {
   t.content = document.getElementById('edit-content-'+id).value.trim();
   t.worker  = document.getElementById('edit-worker-'+id).value.trim();
   t.manager = document.getElementById('edit-manager-'+id).value.trim();
+  // 체크리스트는 실시간으로 t.checklist에 이미 반영됨
   renderList();
   await syncUpdate(t);
 }
@@ -545,6 +571,7 @@ function toggleEdit(id) {
   const isEdit = edit.style.display !== 'none';
   view.style.display = isEdit ? '' : 'none';
   edit.style.display = isEdit ? 'none' : '';
+  if (!isEdit) setTimeout(() => renderEditChecklist(id), 0);
 }
 
 /* ── 목록 렌더링 ── */
@@ -609,6 +636,7 @@ function renderList() {
             '<button class="btn btn-sm" onclick="uploadForTask('+t.id+')">↑ 사진 추가</button>' +
           '</div>'
         ) +
+        (t.checklist && t.checklist.length ? renderChecklistHtml(t.checklist, t.id) : '') +
         (t.discussions && t.discussions.length ?
           '<div class="task-section"><div class="task-section-label">논의 기록 '+t.discussions.length+'건</div>' +
           t.discussions.slice(-3).map(d=>
@@ -636,6 +664,13 @@ function renderList() {
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
           '<div class="form-group"><label>작업자</label><input class="edit-field" id="edit-worker-'+t.id+'" type="text" value="'+esc(t.worker||'')+'"></div>' +
           '<div class="form-group"><label>담당자</label><input class="edit-field" id="edit-manager-'+t.id+'" type="text" value="'+esc(t.manager||'')+'"></div>' +
+        '</div>' +
+        '<div class="form-group" style="margin-top:10px"><label>체크리스트</label>' +
+          '<div id="edit-cl-list-'+t.id+'"></div>' +
+          '<div class="checklist-input-row" style="margin-top:6px">' +
+            '<input type="text" class="edit-field" id="edit-cl-new-'+t.id+'" placeholder="항목 추가 후 Enter" style="font-size:12px;padding:6px 8px" onkeydown="if(event.key===&apos;Enter&apos;){event.preventDefault();addEditClItem('+t.id+')}">' +
+            '<button class="btn btn-sm" onclick="addEditClItem('+t.id+')">+ 추가</button>' +
+          '</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;margin-top:4px">' +
           '<button class="btn btn-accent btn-sm" onclick="saveInlineEdit('+t.id+')">저장</button>' +
@@ -1108,6 +1143,92 @@ function uploadForTask(id) {
   const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
   inp.onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>openPaint(ev.target.result,id); r.readAsDataURL(f); };
   inp.click();
+}
+
+/* ── 체크리스트 (생성 폼용) ── */
+function renderCreateChecklist() {
+  const el = document.getElementById('cl-list');
+  if (!createChecklist.length) { el.innerHTML = ''; return; }
+  const done = createChecklist.filter(i=>i.done).length;
+  el.innerHTML =
+    `<div class="cl-progress">완료 <span>${done}/${createChecklist.length}</span></div>` +
+    createChecklist.map((item, idx) => `
+      <div class="checklist-item${item.done?' done':''}">
+        <input type="checkbox" class="cl-check" ${item.done?'checked':''} onchange="toggleCreateCl(${idx})">
+        <span class="cl-text">${esc(item.text)}</span>
+        <button class="cl-del" onclick="delCreateCl(${idx})">✕</button>
+      </div>`).join('');
+}
+function addClItem() {
+  const inp = document.getElementById('cl-new-item');
+  const text = inp.value.trim();
+  if (!text) return;
+  createChecklist.push({ text, done: false });
+  inp.value = '';
+  renderCreateChecklist();
+  inp.focus();
+}
+function toggleCreateCl(idx) {
+  createChecklist[idx].done = !createChecklist[idx].done;
+  renderCreateChecklist();
+}
+function delCreateCl(idx) {
+  createChecklist.splice(idx, 1);
+  renderCreateChecklist();
+}
+
+/* ── 체크리스트 (카드용) ── */
+function renderChecklistHtml(checklist, taskId) {
+  if (!checklist || !checklist.length) return '';
+  const done = checklist.filter(i=>i.done).length;
+  const pct = Math.round(done/checklist.length*100);
+  return `<div class="task-section">
+    <div class="task-section-label">체크리스트 <span style="font-weight:400;color:var(--text3)">${done}/${checklist.length} · ${pct}%</span></div>
+    <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px;transition:width .3s"></div>
+    </div>
+    ${checklist.map((item,idx) => `
+      <div class="checklist-item${item.done?' done':''}">
+        <input type="checkbox" class="cl-check" ${item.done?'checked':''} onchange="toggleTaskCl(${taskId},${idx})">
+        <span class="cl-text">${esc(item.text)}</span>
+      </div>`).join('')}
+  </div>`;
+}
+async function toggleTaskCl(taskId, idx) {
+  const t = tasks.find(t => t.id === taskId);
+  if (!t || !t.checklist) return;
+  t.checklist[idx].done = !t.checklist[idx].done;
+  renderList();
+  await syncUpdate(t);
+}
+
+/* ── 체크리스트 (인라인 편집용) ── */
+function renderEditChecklist(taskId) {
+  const t = tasks.find(t => t.id === taskId);
+  const checklist = t.checklist || [];
+  const el = document.getElementById('edit-cl-list-'+taskId);
+  if (!el) return;
+  el.innerHTML = checklist.map((item,idx) => `
+    <div class="checklist-item">
+      <span class="cl-text">${esc(item.text)}</span>
+      <button class="cl-del" onclick="delEditCl(${taskId},${idx})">✕</button>
+    </div>`).join('');
+}
+function addEditClItem(taskId) {
+  const inp = document.getElementById('edit-cl-new-'+taskId);
+  const text = inp.value.trim();
+  if (!text) return;
+  const t = tasks.find(t => t.id === taskId);
+  if (!t.checklist) t.checklist = [];
+  t.checklist.push({ text, done: false });
+  inp.value = '';
+  renderEditChecklist(taskId);
+}
+function delEditCl(taskId, idx) {
+  const t = tasks.find(t => t.id === taskId);
+  if (!t.checklist) return;
+  t.checklist.splice(idx, 1);
+  renderEditChecklist(taskId);
 }
 
 function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
