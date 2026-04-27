@@ -1182,17 +1182,19 @@ function renderChecklistHtml(checklist, taskId) {
   if (!checklist || !checklist.length) return '';
   const done = checklist.filter(i=>i.done).length;
   const pct = Math.round(done/checklist.length*100);
-  return `<div class="task-section">
-    <div class="task-section-label">체크리스트 <span style="font-weight:400;color:var(--text3)">${done}/${checklist.length} · ${pct}%</span></div>
-    <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden">
-      <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px;transition:width .3s"></div>
-    </div>
-    ${checklist.map((item,idx) => `
-      <div class="checklist-item${item.done?' done':''}">
-        <input type="checkbox" class="cl-check" ${item.done?'checked':''} onchange="toggleTaskCl(${taskId},${idx})">
-        <span class="cl-text">${esc(item.text)}</span>
-      </div>`).join('')}
-  </div>`;
+  const items = checklist.map((item,idx) =>
+    '<div class="checklist-item'+(item.done?' done':'')+'">' +
+      '<input type="checkbox" class="cl-check" '+(item.done?'checked':'')+' onchange="toggleTaskCl('+taskId+','+idx+')">' +
+      '<span class="cl-text">'+esc(item.text)+'</span>' +
+    '</div>'
+  ).join('');
+  return '<div class="task-section">' +
+    '<div class="task-section-label">체크리스트 <span style="font-weight:400;color:var(--text3)">'+done+'/'+checklist.length+' · '+pct+'%</span></div>' +
+    '<div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden">' +
+      '<div style="height:100%;width:'+pct+'%;background:var(--accent);border-radius:2px;transition:width .3s"></div>' +
+    '</div>' +
+    items +
+  '</div>';
 }
 async function toggleTaskCl(taskId, idx) {
   const t = tasks.find(t => t.id === taskId);
