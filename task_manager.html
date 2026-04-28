@@ -398,11 +398,23 @@ async function load() {
   setStatus('불러오는 중...');
   try {
     const data = await apiGet('getAll');
-    tasks = (data.tasks || []).map(t => ({
-      ...t,
-      // 날짜 정규화: "2026-04-28T15:00:00.000Z" → "2026-04-28"
-      date: t.date ? String(t.date).slice(0,10) : null
-    }));
+    tasks = (data.tasks || []).map(t => {
+      let d = t.date ? String(t.date).trim() : '';
+      // "2026-04-28T..." → "2026-04-28"
+      if (d) d = d.slice(0,10);
+      // "Wed Apr 29" 같은 형식 → Date 파싱
+      if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+        const parsed = new Date(t.date);
+        if (!isNaN(parsed)) {
+          d = parsed.getFullYear() + '-' +
+              String(parsed.getMonth()+1).padStart(2,'0') + '-' +
+              String(parsed.getDate()).padStart(2,'0');
+        } else {
+          d = '';
+        }
+      }
+      return { ...t, date: d || null };
+    });
     setStatus('동기화 완료 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
     setStatus('연결 오류 — 로컬 모드', true);
