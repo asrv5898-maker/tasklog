@@ -363,21 +363,28 @@ function setStatus(msg, err) {
   el.style.color = err ? '#f87171' : 'rgba(255,255,255,.35)';
 }
 
-/* ── API (JSONP — file:// 포함 모든 환경 작동) ── */
-function apiCall(params) {
+/* ── API ── */
+// GET (읽기) → JSONP, POST (쓰기) → fetch
+// JSONP는 file://에서도 작동, fetch는 https://에서 CORS 없이 작동
+function apiGet(action) {
   return new Promise((resolve, reject) => {
     const cb = '_cb' + Date.now();
     const sc = document.createElement('script');
-    const qs = Object.entries({...params, callback: cb})
-      .map(([k,v]) => k + '=' + encodeURIComponent(typeof v === 'object' ? JSON.stringify(v) : v)).join('&');
     window[cb] = data => { delete window[cb]; sc.remove(); resolve(data); };
     sc.onerror   = () => { delete window[cb]; sc.remove(); reject(new Error('network')); };
-    sc.src = GAS_URL + '?' + qs;
+    sc.src = GAS_URL + '?action=' + action + '&callback=' + cb;
     document.head.appendChild(sc);
   });
 }
-const apiGet  = action => apiCall({ action });
-const apiPost = body   => apiCall({ action: body.action, payload: JSON.stringify(body) });
+async function apiPost(body) {
+  // fetch로 POST 전송 (데이터 크기 제한 없음)
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  return res.json();
+}
 
 /* ── 로드 ── */
 async function load() {
