@@ -398,7 +398,11 @@ async function load() {
   setStatus('불러오는 중...');
   try {
     const data = await apiGet('getAll');
-    tasks = data.tasks || [];
+    tasks = (data.tasks || []).map(t => ({
+      ...t,
+      // 날짜 정규화: "2026-04-28T15:00:00.000Z" → "2026-04-28"
+      date: t.date ? String(t.date).slice(0,10) : null
+    }));
     setStatus('동기화 완료 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
     setStatus('연결 오류 — 로컬 모드', true);
