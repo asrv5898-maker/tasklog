@@ -114,6 +114,10 @@ textarea{resize:vertical;min-height:80px;line-height:1.7}
 .edit-field{width:100%;padding:8px 10px;border:1px solid var(--accent);border-radius:var(--r);font-size:13px;color:var(--text);background:#fff;font-family:'Noto Sans KR',sans-serif;outline:none}
 .edit-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,74,62,.1)}
 
+/* ── 예약 표시 ── */
+.booking-chip{display:inline-block;padding:1px 5px;border-radius:10px;font-size:9px;font-weight:600;margin-top:2px;margin-right:2px;white-space:nowrap;background:#fde8d8;color:#c4521a;border:1px solid #f4b896}
+.cal-cell.has-booking{box-shadow:inset 0 0 0 2px #f4b896}
+
 /* ── 공휴일 ── */
 .holiday-name{font-size:9px;color:#dc2626;font-weight:600;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cal-cell.holiday .cal-day{color:#dc2626}
@@ -353,6 +357,9 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbzDKicsgLoc3CirT9uOLwgy
 // ============================================================
 
 let tasks = [], calYear, calMonth;
+let bookings = []; // Airtable 예약 데이터
+
+
 let pendingDateId = null, pendingDiscId = null;
 let createImgs = [], createChecklist = [];
 let filterSpace = 'all', filterWorker = 'all', filterDate = 'all';
@@ -420,6 +427,36 @@ async function load() {
     setStatus('연결 오류 — 로컬 모드', true);
     try { tasks = JSON.parse(localStorage.getItem('tl_tasks')) || []; } catch(e2) { tasks = []; }
   }
+  // Airtable 예약 데이터 로드 (병렬)
+  loadBookings();
+}
+
+/* ── Airtable 예약 로드 (Apps Script 경유) ── */
+async function loadBookings() {
+  try {
+    const data = await apiGet('getBookings');
+    bookings = (data.bookings || []).map(b => ({
+      ...b,
+      start: b.start ? String(b.start).slice(0,10) : '',
+      end:   b.end   ? String(b.end).slice(0,10)   : ''
+    })).filter(b => b.start);
+    // 달력이 이미 렌더링된 상태면 갱신
+    if (document.getElementById('page-calendar').classList.contains('active')) {
+      renderCalendar();
+    }
+  } catch(e) {
+    console.warn('Airtable 로드 실패:', e);
+  }
+}
+
+/* ── 특정 날짜의 예약 목록 반환 ── */
+function getBookingsForDate(ds) {
+  return bookings.filter(b => {
+    if (!b.start) return false;
+    if (!b.end || b.end === b.start) return b.start === ds;
+    // 기간 예약: start ~ end 사이 날짜
+    return ds >= b.start && ds <= b.end;
+  });
 }
 
 /* ── 동기화 헬퍼 ── */
@@ -819,12 +856,15 @@ function buildSpaceColorMap() {
 /* ── 달력 범례 ── */
 function renderCalLegend() {
   const spaces = [...new Set(tasks.filter(t => t.date).map(t => t.space).filter(Boolean))];
-  if (!spaces.length) { document.getElementById('cal-legend').innerHTML = ''; return; }
-  document.getElementById('cal-legend').innerHTML =
-    spaces.map(s => {
-      const c = getSpaceColor(s);
-      return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${c.bg};border:1.5px solid ${c.border}"></div>${esc(s)}</div>`;
-    }).join('');
+  const spacesHtml = spaces.map(s => {
+    const c = getSpaceColor(s);
+    return `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${c.bg};border:1.5px solid ${c.border}"></div>${esc(s)}</div>`;
+  }).join('');
+  const bookingLegend = bookings.length
+    ? `<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fde8d8;border:1.5px solid #f4b896"></div>예약(확정)</div>`
+    : '';
+  const combined = spacesHtml + bookingLegend;
+  document.getElementById('cal-legend').innerHTML = combined || '';
 }
 
 /* ── 달력 ── */
@@ -891,10 +931,14 @@ function renderCalendar() {
     const holiday = getHoliday(ds);
     const dow = new Date(ds).getDay();
     const holidayClass = holiday ? ' holiday' : (dow===0 ? ' sunday' : dow===6 ? ' saturday' : '');
-    html += `<div class="cal-cell${ds===todayStr?' today':''}${holidayClass}" style="${bgStyle}" onclick="showCalDay('${ds}')">
+    const dayBookings = getBookingsForDate(ds);
+    const bookingChips = dayBookings.map(b => `<span class="booking-chip">예약</span>`).join('');
+    const bookingClass = dayBookings.length ? ' has-booking' : '';
+    html += `<div class="cal-cell${ds===todayStr?' today':''}${holidayClass}${bookingClass}" style="${bgStyle}" onclick="showCalDay('${ds}')">
       <div class="cal-day">${d}</div>
       ${holiday ? `<div class="holiday-name">${holiday}</div>` : ''}
       ${chips}
+      ${bookingChips}
     </div>`;
   }
 
@@ -932,10 +976,22 @@ function renderCalendar() {
 function showCalDay(ds) {
   const dt = tasks.filter(t => t.date === ds);
   const el = document.getElementById('cal-detail');
-  if (!dt.length) {
+  const dayBookings = getBookingsForDate(ds);
+  if (!dt.length && !dayBookings.length) {
     el.innerHTML = `<div class="cal-detail"><div class="cal-detail-title">${ds}${getHoliday(ds) ? ' 🔴 '+getHoliday(ds) : ''}</div><div style="font-size:13px;color:var(--text3)">등록된 업무가 없습니다.</div></div>`; return;
   }
+  if (!dt.length) {
+    el.innerHTML = `<div class="cal-detail">
+      <div class="cal-detail-title">${ds}${getHoliday(ds) ? ' 🔴 '+getHoliday(ds) : ''}</div>
+      ${dayBookings.map(b => `<div style="padding:8px 12px;background:#fde8d8;border:1px solid #f4b896;border-radius:8px;margin-bottom:6px;font-size:13px">
+        🏠 <strong>예약(확정)</strong> ${b.start}${b.end && b.end!==b.start?' ~ '+b.end:''}
+      </div>`).join('')}
+    </div>`; return;
+  }
   el.innerHTML = `<div class="cal-detail">
+    ${dayBookings.length ? dayBookings.map(b => `<div style="padding:8px 12px;background:#fde8d8;border:1px solid #f4b896;border-radius:8px;margin-bottom:8px;font-size:13px">
+      🏠 <strong>예약(확정)</strong> ${b.start}${b.end && b.end!==b.start?' ~ '+b.end:''}
+    </div>`).join('') : ''}
 
     <!-- 헤더: 날짜 + 전체이동 + 선택이동 -->
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
